@@ -53,9 +53,21 @@ app.post('/register', (req,res) => {
     })
 });
 
+app.get('/keeplogin', (req,res) => {
+    const { email } = req.query;
+    var data = {
+        email: email,
+    };
+    var sql = `select * from userdata WHERE email = '${email}';`;
+    conn.query(sql, data, (err, results) => {
+        if(err) throw err;
+        res.send(results);
+        // console.log(results);
+    })
+});
+
 app.get('/listmenu', (req,res) => {
-    var sql1 = `select iddaftarmenu, menu, description, 
-                harga, k.nama as kategori
+    var sql1 = `select iddaftarmenu, menu, description, harga, k.nama as kategori, images
                 from daftarmenu d join kategori k
                 on d.idkategori = k.id;`;
     var sql2 = `select * from kategori;`;
@@ -71,10 +83,9 @@ app.get('/listmenu', (req,res) => {
     })
 });
 
-app.get('/searchmenu', (req,res) => {
+app.get('/filterCatgr', (req,res) => {
     const { namakategori } = req.query;
-    var sql = `select iddaftarmenu, menu, description, 
-                harga, k.nama as kategori
+    var sql = `select iddaftarmenu, menu, description, harga, k.nama as kategori, images
                 from daftarmenu d join kategori k
                 on d.idkategori = k.id
                 where k.nama Like '%${namakategori}%';`;
@@ -82,20 +93,18 @@ app.get('/searchmenu', (req,res) => {
         if(err) throw err;
 
         res.send(results);
-        // console.log(results);
+        console.log(results);
     })
-})
+});
 
-app.get('/sortinghargaAsc', (req,res) => {
+app.get('/sorthargaAsc', (req,res) => {
     const { namakategori } = req.query;
     if(namakategori !== ""){
-        var sql = `select iddaftarmenu, menu, description,
-                    harga, k.nama as kategori
+        var sql = `select iddaftarmenu, menu, description, harga, k.nama as kategori, images
                     from daftarmenu d join kategori k
                     on d.idkategori = k.id
                     WHERE k.nama LIKE '%${namakategori}%'
                     order by harga;`;
-
         conn.query(sql, (err, results) => {
             if(err) throw err;
 
@@ -104,8 +113,7 @@ app.get('/sortinghargaAsc', (req,res) => {
         })
     }
     else{
-        sql = `select iddaftarmenu, menu, description, 
-                harga, k.nama as kategori
+        sql = `select iddaftarmenu, menu, description, harga, k.nama as kategori, images
                 from daftarmenu d join kategori k
                 on d.idkategori = k.id
                 order by harga;`;
@@ -116,48 +124,115 @@ app.get('/sortinghargaAsc', (req,res) => {
             // console.log(results1);
         })
     }
-})
+});
 
-app.get('/sortinghargaDesc', (req,res) => {
-    var sql = `select iddaftarmenu, menu, description, harga, k.nama as kategori
+app.get('/sorthargaDesc', (req,res) => {
+    const { namakategori } = req.query;
+    if(namakategori !== ""){
+        var sql = `select iddaftarmenu, menu, description, harga, k.nama as kategori, images
+                    from daftarmenu d join kategori k
+                    on d.idkategori = k.id
+                    WHERE k.nama LIKE '%${namakategori}%'
+                    order by harga DESC;`;
+        conn.query(sql, (err, results) => {
+            if(err) throw err;
+
+            res.send(results);
+            // console.log(results);
+        })
+    }
+    else{
+        sql = `select iddaftarmenu, menu, description, harga, k.nama as kategori, images
+                    from daftarmenu d
+                    join kategori k
+                    on d.idkategori = k.id
+                    order by harga DESC;`;
+        conn.query(sql, (err, results) => {
+            if(err) throw err;
+
+            res.send(results);
+            // console.log(results);
+        })
+    }
+});
+
+app.get('/sortmenuAsc', (req,res) => {
+    const { namakategori } = req.query;
+    if(namakategori !== ""){
+        var sql = `select iddaftarmenu, menu, description, harga, k.nama as kategori, images
+                    from daftarmenu d join kategori k
+                    on d.idkategori = k.id
+                    WHERE k.nama LIKE '%${namakategori}%'
+                    order by menu;`;
+
+        conn.query(sql, (err, results) => {
+            if(err) throw err;
+
+            res.send(results);
+            // console.log(results);
+        })
+    }
+    else{
+        sql = `select iddaftarmenu, menu, description, harga, k.nama as kategori, images
                 from daftarmenu d
                 join kategori k
                 on d.idkategori = k.id
-                order by harga DESC;`;
-    conn.query(sql, (err, results) => {
-        if(err) throw err;
+                order by menu;`;
+        conn.query(sql, (err, results) => {
+            if(err) throw err;
 
-        res.send(results);
-        console.log(results);
-    })
-})
+            res.send(results);
+            // console.log(results);
+        })
+    }
+});
 
-app.get('/sortingKtgAsc', (req,res) => {
-    var sql = `select iddaftarmenu, menu, description, harga, k.nama as kategori
+app.get('/sortmenuDesc', (req,res) => {
+    const { namakategori } = req.query;
+    if(namakategori !== ""){
+        var sql = `select iddaftarmenu, menu, description, harga, k.nama as kategori, images
+                    from daftarmenu d join kategori k
+                    on d.idkategori = k.id
+                    WHERE k.nama LIKE '%${namakategori}%'
+                    order by menu DESC;`;
+        conn.query(sql, (err, results) => {
+            if(err) throw err;
+
+            res.send(results);
+            // console.log(results);
+        })
+    }
+    else{
+        sql = `select iddaftarmenu, menu, description, harga, k.nama as kategori, images
                 from daftarmenu d
                 join kategori k
                 on d.idkategori = k.id
-                order by kategori;`;
-    conn.query(sql, (err, results) => {
-        if(err) throw err;
+                order by menu DESC;`;
+        conn.query(sql, (err, results) => {
+            if(err) throw err;
 
-        res.send(results);
-        console.log(results);
-    })
-})
+            res.send(results);
+            // console.log(results);
+        })
+    }
+});
 
-app.get('/sortingKtgDesc', (req,res) => {
-    var sql = `select iddaftarmenu, menu, description, harga, k.nama as kategori
-                from daftarmenu d
-                join kategori k
+app.get('/searchmenu', (req,res) => {
+    const { searchValue } = req.query;
+    var sql1 = `select iddaftarmenu, menu, description, harga, k.nama as kategori, images
+                from daftarmenu d join kategori k
                 on d.idkategori = k.id
-                order by kategori DESC;`;
-    conn.query(sql, (err, results) => {
-        if(err) throw err;
+                where menu Like '%${searchValue}%';`;
+    var sql2 = `select * from kategori;`;
+    conn.query(sql1, (err1, results1) => {
+        if(err1) throw err
+        console.log(results1.data);
 
-        res.send(results);
-        console.log(results);
+        conn.query(sql2, (err2, results2) => {
+            res.send({ daftarmenu: results1, kategori: results2 });
+            console.log(results2.data);;
+        })
     })
-})
+});
 
 app.listen(port, () => console.log(`WMM app listening on port ${port}!`));
