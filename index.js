@@ -83,6 +83,62 @@ app.get('/listmenu', (req,res) => {
     })
 });
 
+app.delete('/listmenu/:id', (req,res) => {
+    var sql = 'DELETE FROM daftarmenu WHERE idmenu = ' + req.params.id;
+    conn.query(sql, (err, results) => {
+        if(err) throw err;
+
+        var sql1 = `select idmenu, menu, description, harga, k.nama as kategori, images
+                    from daftarmenu d join kategori k
+                    on d.idkategori = k.id;`;
+        conn.query(sql1, (err1, results1) => {
+            if(err1) throw err1;
+
+            res.send(results1);
+        })
+    })
+});
+
+app.put('/listmenu/:idmenu', (req,res) => {
+    const { images, menu, description, harga, idkategori } = req.body;
+    var data = { images, menu, description, harga, idkategori };
+
+    var sql = `UPDATE daftarmenu SET ? WHERE idmenu = ` + req.params.idmenu;
+    conn.query(sql, data, (err, results) => {
+        if(err) res.send({ err, status: 'Error' });
+        else {
+            var sql1 = `select idmenu, menu, description, harga, k.nama as kategori, images
+                        from daftarmenu d join kategori k
+                        on d.idkategori = k.id;`;
+            conn.query(sql1, (err1, results1) => {
+                if(err1) throw err1;
+
+                res.send(results1);
+            })
+        }
+    })
+});
+
+app.post('/listmenu', (req,res) => {
+    const { images, menu, description, harga, idkategori } = req.body;
+    var data = { images, menu, description, harga, idkategori };
+
+    var sql = `INSERT INTO daftarmenu SET ?`;
+    conn.query(sql, data, (err, results) => {
+        if(err) throw err;
+        console.log(results);
+
+        var sql1 = `select idmenu, menu, description, harga, k.nama as kategori, images
+                    from daftarmenu d join kategori k
+                    on d.idkategori = k.id;`;
+        conn.query(sql1, (err1, results1) => {
+            if(err1) throw err1;
+
+            res.send(results1);
+        })
+    })
+});
+
 app.get('/filterCatgr', (req,res) => {
     const { namakategori } = req.query;
     var sql = `select idmenu, menu, description, harga, k.nama as kategori, images
@@ -229,6 +285,8 @@ app.get('/searchmenu', (req,res) => {
         // console.log(results1.data);
 
         conn.query(sql2, (err2, results2) => {
+            if(err2) throw err2;
+            
             res.send({ daftarmenu: results1, kategori: results2 });
             // console.log(results2.data);;
         })
@@ -251,14 +309,8 @@ app.get('/getMenuDetails', (req,res) => {
 
 app.post('/cart', (req,res) => {
     const { username, idmenu, menu, jumlah, harga, images } = req.body;
-    var data = {
-        username: username,
-        idmenu: idmenu,
-        menu: menu, 
-        jumlah: jumlah,
-        harga: harga,
-        images: images
-    };
+    var data = { username, idmenu, menu, jumlah, harga, images };
+
     var sql = `select * from cart where username = "${username}" AND idmenu = ${idmenu};`;
     conn.query(sql, data, (err, results) => {
         if(err) throw err;
@@ -295,7 +347,7 @@ app.get('/cart', (req,res) => {
     })
 });
 
-app.delete('/cart/:id', (req, res) => {
+app.delete('/cart/:id', (req,res) => {
     const { username } = req.query;
 
     var sql = 'DELETE FROM cart WHERE idcart = ' + req.params.id;
@@ -311,17 +363,76 @@ app.delete('/cart/:id', (req, res) => {
     })
 });
 
-app.put('/cart/:id', (req, res) => {
+app.put('/cart/:id', (req,res) => {
     const { jumlah } = req.body;
-    var data = {
-        jumlah: jumlah
-    };
+    var data = { jumlah };
 
     var sql = `UPDATE cart SET ? WHERE idcart=${req.params.id};`;
     conn.query(sql, data, (err, results) => {
         if(err) res.send({ err, status: 'Error' });
         
         res.send(results);
+    })
+});
+
+app.post('/checkout', (req,res) => {
+    const { username, totalharga } = req.body;
+    var data = { username, totalharga };
+
+    var sql = 'INSERT INTO transaction SET ?';
+    conn.query(sql, data, (err, results) => {
+        if(err) throw err;
+
+        var sql1 = `select (select MAX(idtrans) from transaction where username = '${username}') as idTransaction,
+                    menu, jumlah, harga, images from cart where username = '${username}';`;
+
+        conn.query(sql1, (err1, results1) => {
+            if(err1) throw err1;
+            console.log(results1);
+
+            var sql2 = `INSERT INTO transactiondetail (transactionid, menu, jumlah, harga, images)
+                        VALUES ?`;
+            var values = [];
+            results1.map(data => {
+                values.push([data.idTransaction, data.menu, data.jumlah, data.harga, data.images])
+            })
+            console.log(values);
+
+            conn.query(sql2, [values], (err2, results2) => {
+                if(err2) throw err2;
+                console.log(results2);
+
+                var sql3 = `DELETE FROM cart where username = '${username}';`;
+                conn.query(sql3, (err3, results3) => {
+                    if(err3) throw err3;
+
+                    console.log(results3);
+                    res.send(results3);
+                })
+            })
+        })
+    })
+});
+
+app.get('/transaction', (req,res) => {
+    var sql = 'select * from transaction;';
+
+    conn.query(sql, (err, results) => {
+        if(err) throw err;
+
+        res.send(results);
+        console.log(results);
+    })
+})
+
+app.get('/transDetail/:idtrans', (req,res) => {
+    var sql = 'select * from transactiondetail where transactionid = ' + req.params.idtrans;
+
+    conn.query(sql, (err, results) => {
+        if(err) throw err;
+
+        res.send(results);
+        console.log(results);
     })
 });
 
