@@ -26,13 +26,12 @@ app.get('/', (req,res) => {
 
 app.get('/login', (req,res) => {
     const { email, password } = req.query;
-    var data = {
-        email: email,
-        password: password
-    };
+    var data = { email, password };
+
     var sql = `select * from userdata WHERE email = '${email}' AND password = '${password}';`;
     conn.query(sql, data, (err, results) => {
         if(err) throw err;
+
         res.send(results);
         // console.log(results);
     })
@@ -40,14 +39,12 @@ app.get('/login', (req,res) => {
 
 app.post('/register', (req,res) => {
     const { username, email, password } = req.body;
-    var data = {
-        username: username,
-        email: email,
-        password: password
-    };
+    var data = { username, email, password };
+
     var sql = `INSERT INTO userdata SET ?;`;
     conn.query(sql, data, (err,results) => {
         if(err) throw err;
+
         res.send(data);
         // console.log(data);
     })
@@ -55,16 +52,45 @@ app.post('/register', (req,res) => {
 
 app.get('/keeplogin', (req,res) => {
     const { email } = req.query;
-    var data = {
-        email: email,
-    };
+    var data = { email };
+
     var sql = `select * from userdata WHERE email = '${email}';`;
     conn.query(sql, data, (err, results) => {
         if(err) throw err;
+
         res.send(results);
         // console.log(results);
     })
 });
+
+app.get('/userdata', (req,res) => {
+    const { username } = req.query;
+
+    var sql = `select * from userdata WHERE username = '${username}';`;
+    conn.query(sql, (err, results) => {
+        if(err) throw err;
+
+        res.send(results);
+    })
+})
+
+app.put('/userdata/:iduser', (req,res) => {
+    const { username, email, password, alamat } = req.body;
+    var data = { username, email, password, alamat };
+
+    var sql = 'UPDATE userdata SET ? WHERE id = ' + req.params.iduser;
+    conn.query(sql, data, (err, results) => {
+        if(err) throw err;
+
+        var sql1 = `select * from userdata WHERE username = '${username}';`;
+        conn.query(sql1, (err1, results1) => {
+            if(err1) throw err1;
+
+            res.send(results1);
+            console.log(results1);
+        })
+    })
+})
 
 app.get('/listmenu', (req,res) => {
     var sql1 = `select idmenu, menu, description, harga, k.nama as kategori, images
@@ -364,19 +390,24 @@ app.delete('/cart/:id', (req,res) => {
 });
 
 app.put('/cart/:id', (req,res) => {
-    const { jumlah } = req.body;
+    const { jumlah, username } = req.body;
     var data = { jumlah };
 
     var sql = `UPDATE cart SET ? WHERE idcart=${req.params.id};`;
     conn.query(sql, data, (err, results) => {
         if(err) res.send({ err, status: 'Error' });
-        
-        res.send(results);
+
+        var sql1 = `select * from cart where username = "${username}";`;
+        conn.query(sql1, (err1, results1) => {
+            if(err1) throw err1;
+
+            res.send(results1);
+        })
     })
 });
 
 app.post('/checkout', (req,res) => {
-    const { username, totalharga } = req.body;
+    const { username, totalharga, address } = req.body;
     var data = { username, totalharga };
 
     var sql = 'INSERT INTO transaction SET ?';
@@ -390,11 +421,11 @@ app.post('/checkout', (req,res) => {
             if(err1) throw err1;
             console.log(results1);
 
-            var sql2 = `INSERT INTO transactiondetail (transactionid, menu, jumlah, harga, images)
+            var sql2 = `INSERT INTO transactiondetail (transactionid, menu, jumlah, harga, images, alamat)
                         VALUES ?`;
             var values = [];
             results1.map(data => {
-                values.push([data.idTransaction, data.menu, data.jumlah, data.harga, data.images])
+                values.push([data.idTransaction, data.menu, data.jumlah, data.harga, data.images, address])
             })
             console.log(values);
 
