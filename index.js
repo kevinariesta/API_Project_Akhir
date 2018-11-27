@@ -75,8 +75,8 @@ app.get('/userdata', (req,res) => {
 })
 
 app.put('/userdata/:iduser', (req,res) => {
-    const { username, email, password, alamat } = req.body;
-    var data = { username, email, password, alamat };
+    const { username, alamat } = req.body;
+    var data = { alamat };
 
     var sql = 'UPDATE userdata SET ? WHERE id = ' + req.params.iduser;
     conn.query(sql, data, (err, results) => {
@@ -444,6 +444,29 @@ app.post('/checkout', (req,res) => {
         })
     })
 });
+
+app.get('/transhistoryuser', (req,res) => {
+    const { username } = req.query;
+
+    var sql = `select * from transaction where username = '${username}';`;
+    conn.query(sql, (err, results) => {
+        if(err) throw err;
+
+        res.send(results);
+        console.log(results);
+    })
+})
+
+app.get('/transdetailuser/:idtrans', (req,res) => {
+    var sql = `select * from transactiondetail where transactionid = ` + req.params.idtrans;
+
+    conn.query(sql, (err, results) => {
+        if(err) throw err;
+
+        res.send(results);
+        console.log(results);
+    })
+})
 
 app.get('/transaction', (req,res) => {
     var sql = 'select * from transaction;';
