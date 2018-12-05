@@ -89,7 +89,7 @@ app.put('/userdata/:iduser', (req,res) => {
             if(err1) throw err1;
 
             res.send(results1);
-            console.log(results1);
+            // console.log(results1);
         })
     })
 })
@@ -171,16 +171,28 @@ app.post('/listmenu', (req,res) => {
 
 app.get('/filterCatgr', (req,res) => {
     const { namakategori } = req.query;
-    var sql = `select idmenu, menu, description, harga, k.nama as kategori, images
-                from daftarmenu d join kategori k
-                on d.idkategori = k.id
-                where k.nama Like '%${namakategori}%';`;
-    conn.query(sql, (err, results) => {
-        if(err) throw err;
+    if(namakategori !== "All Menu") {
+        var sql = `select idmenu, menu, description, harga, k.nama as kategori, images
+                    from daftarmenu d join kategori k
+                    on d.idkategori = k.id
+                    where k.nama Like '%${namakategori}%';`;
+        conn.query(sql, (err, results) => {
+            if(err) throw err;
 
-        res.send(results);
-        // console.log(results);
-    })
+            res.send(results);
+            // console.log(results);
+        })
+    }
+    else {
+        sql = `select idmenu, menu, description, harga, k.nama as kategori, images
+                from daftarmenu d join kategori k
+                on d.idkategori = k.id;`;
+        conn.query(sql, (err, results) => {
+            if(err) throw err;
+
+            res.send(results);
+        })
+    }
 });
 
 app.get('/sorthargaAsc', (req,res) => {
@@ -207,7 +219,7 @@ app.get('/sorthargaAsc', (req,res) => {
             if(err) throw err;
 
             res.send(results);
-            // console.log(results1);
+            // console.log(results);
         })
     }
 });
@@ -427,7 +439,7 @@ app.post('/checkout', (req,res) => {
 
         conn.query(sql1, (err1, results1) => {
             if(err1) throw err1;
-            console.log(results1);
+            // console.log(results1);
 
             var sql2 = `INSERT INTO transactiondetail (transactionid, menu, jumlah, harga, images, alamat)
                         VALUES ?`;
@@ -435,17 +447,17 @@ app.post('/checkout', (req,res) => {
             results1.map(data => {
                 values.push([data.idTransaction, data.menu, data.jumlah, data.harga, data.images, address])
             })
-            console.log(values);
+            // console.log(values);
 
             conn.query(sql2, [values], (err2, results2) => {
                 if(err2) throw err2;
-                console.log(results2);
+                // console.log(results2);
 
                 var sql3 = `DELETE FROM cart where username = '${username}';`;
                 conn.query(sql3, (err3, results3) => {
                     if(err3) throw err3;
 
-                    console.log(results3);
+                    // console.log(results3);
                     res.send(results3);
                 })
             })
@@ -456,12 +468,19 @@ app.post('/checkout', (req,res) => {
 app.get('/transhistoryuser', (req,res) => {
     const { username } = req.query;
 
-    var sql = `select * from transaction where username = '${username}';`;
-    conn.query(sql, (err, results) => {
-        if(err) throw err;
+    var sql1 = `select (@cnt := @cnt + 1) as TransactionID, username, totalharga
+                from transaction JOIN (SELECT @cnt := 0) AS dummy
+                where username = '${username}';`;
+    var sql2 = `select * from transaction where username = '${username}';`;
 
-        res.send(results);
-        console.log(results);
+    conn.query(sql1, (err1, results1) => {
+        if(err1) throw err1;
+
+        conn.query(sql2, (err2, results2) => {
+            if(err2) throw err2;
+
+            res.send({ orderedTrans: results1, transaction: results2 })
+        })
     })
 })
 
@@ -472,7 +491,7 @@ app.get('/transdetailuser/:idtrans', (req,res) => {
         if(err) throw err;
 
         res.send(results);
-        console.log(results);
+        // console.log(results);
     })
 })
 
@@ -485,7 +504,7 @@ app.get('/transaction', (req,res) => {
         if(err) throw err;
 
         res.send(results);
-        console.log(results);
+        // console.log(results);
     })
 })
 
@@ -496,7 +515,7 @@ app.get('/transDetail/:idtrans', (req,res) => {
         if(err) throw err;
 
         res.send(results);
-        console.log(results);
+        // console.log(results);
     })
 });
 
