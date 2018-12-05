@@ -24,6 +24,8 @@ app.get('/', (req,res) => {
     res.send('<h1>API WMM Active!!!</h1>');
 })
 
+// <============================================== User Authentication ============================================================>
+
 app.get('/login', (req,res) => {
     const { email, password } = req.query;
     var data = { email, password };
@@ -91,6 +93,8 @@ app.put('/userdata/:iduser', (req,res) => {
         })
     })
 })
+
+// <=============================================== Product Menu & Admin CRUDE List Menu =====================================================>
 
 app.get('/listmenu', (req,res) => {
     var sql1 = `select idmenu, menu, description, harga, k.nama as kategori, images
@@ -181,7 +185,7 @@ app.get('/filterCatgr', (req,res) => {
 
 app.get('/sorthargaAsc', (req,res) => {
     const { namakategori } = req.query;
-    if(namakategori !== ""){
+    if(namakategori !== "All Menu"){
         var sql = `select idmenu, menu, description, harga, k.nama as kategori, images
                     from daftarmenu d join kategori k
                     on d.idkategori = k.id
@@ -210,7 +214,7 @@ app.get('/sorthargaAsc', (req,res) => {
 
 app.get('/sorthargaDesc', (req,res) => {
     const { namakategori } = req.query;
-    if(namakategori !== ""){
+    if(namakategori !== "All Menu"){
         var sql = `select idmenu, menu, description, harga, k.nama as kategori, images
                     from daftarmenu d join kategori k
                     on d.idkategori = k.id
@@ -240,7 +244,7 @@ app.get('/sorthargaDesc', (req,res) => {
 
 app.get('/sortmenuAsc', (req,res) => {
     const { namakategori } = req.query;
-    if(namakategori !== ""){
+    if(namakategori !== "All Menu"){
         var sql = `select idmenu, menu, description, harga, k.nama as kategori, images
                     from daftarmenu d join kategori k
                     on d.idkategori = k.id
@@ -271,7 +275,7 @@ app.get('/sortmenuAsc', (req,res) => {
 
 app.get('/sortmenuDesc', (req,res) => {
     const { namakategori } = req.query;
-    if(namakategori !== ""){
+    if(namakategori !== "All Menu"){
         var sql = `select idmenu, menu, description, harga, k.nama as kategori, images
                     from daftarmenu d join kategori k
                     on d.idkategori = k.id
@@ -332,6 +336,8 @@ app.get('/getMenuDetails', (req,res) => {
         // console.log(results);
     })
 });
+
+// <==================================================== Cart =========================================================>
 
 app.post('/cart', (req,res) => {
     const { username, idmenu, menu, jumlah, harga, images } = req.body;
@@ -406,6 +412,8 @@ app.put('/cart/:id', (req,res) => {
     })
 });
 
+// <==================================================== User Transaction ===============================================>
+
 app.post('/checkout', (req,res) => {
     const { username, totalharga, address } = req.body;
     var data = { username, totalharga };
@@ -467,6 +475,8 @@ app.get('/transdetailuser/:idtrans', (req,res) => {
         console.log(results);
     })
 })
+
+// <=================================================== Admin Transaction ====================================================>
 
 app.get('/transaction', (req,res) => {
     var sql = 'select * from transaction;';
